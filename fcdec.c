@@ -31,7 +31,7 @@ DB_functions_t *deadbeef;
 const char *fcdec_exts[] = { "fc", "fc13", "fc14", "fc3", "fc4", "smod", "hip", "hipc", "hip7", "mcmd", NULL };
 
 static const char settings_dlg[] =
-    "property \"Sample rate [Hz]\" entry fcdec.samplerate 44100;\n"
+    "property \"Sample rate [Hz]\" select[3] fcdec.samplerate 1 48000 44100 22050;\n"
     "property \"Panning\" spinbtn[0,100,1] fcdec.panning 75;\n"
     "property \"Min.duration [sec]\" entry fcdec.minduration 10;\n"
 ;
@@ -70,7 +70,8 @@ int fcdec_init (DB_fileinfo_t *_info, DB_playItem_t *it) {
         return -1;
     }
 
-    int samplerate = deadbeef->conf_get_int ("fcdec.samplerate", 44100);
+    int samplerates[3] = { 48000, 44100, 22050 };
+    int samplerate = samplerates[deadbeef->conf_get_int ("fcdec.samplerate", 1)];
     int bits = 16;
     int channels = 2;
     int panning = deadbeef->conf_get_int ("fcdec.panning", 50+25);

@@ -218,7 +218,7 @@ DB_decoder_t fcdec_plugin = {
     ".hip, .hipc, .hip7, .mcmd\n",
     .plugin.copyright = "Created by Michael Schwendt\n\n"
     "License: GPLv2 or later\n",
-    .plugin.website = "https://github.com/mschwendt/libfc14audiodecoder",
+    .plugin.website = "https://github.com/mschwendt/deadbeef-plugins-fc",
     .plugin.start = fcdec_start,
     .plugin.stop = fcdec_stop,
     .plugin.configdialog = settings_dlg,

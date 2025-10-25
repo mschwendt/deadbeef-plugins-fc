@@ -64,6 +64,9 @@ int fcdec_init (DB_fileinfo_t *_info, DB_playItem_t *it) {
     deadbeef->pl_lock();
     char *uri = strdup( deadbeef->pl_find_meta(it, ":URI") );
     deadbeef->pl_unlock();
+    if ( !deadbeef->is_local_file(uri) ) {
+        return -1;
+    }
     info->file = deadbeef->fopen(uri);
     free(uri);
     if (!info->file) {
@@ -93,12 +96,14 @@ int fcdec_init (DB_fileinfo_t *_info, DB_playItem_t *it) {
     int64_t len = deadbeef->fgetlength(info->file);
     char* buf = malloc(len);
     if (!buf) {
-        fc14dec_delete(info->decoder);
         return -1;
     }
     size_t read = deadbeef->fread(buf,len,1,info->file);
     deadbeef->fclose(info->file);
     int haveModule = fc14dec_init(info->decoder,buf,len,info->subsong);
+    if ( !haveModule ) {
+        return -1;
+    }
     free(buf);
 
     fc14dec_mixer_init(info->decoder,samplerate,bits,channels,0,panning);

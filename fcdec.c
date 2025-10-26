@@ -1,5 +1,5 @@
 /*
-  Future Composer & Hippel audio decoder plug-in
+  TFMX & Future Composer audio decoder plug-in
   for the DeaDBeeF music player
 
   This program is free software; you can redistribute it and/or modify
@@ -23,12 +23,16 @@
 #include <string.h>
 #include <stdlib.h>
 #include <deadbeef/deadbeef.h>
-#include <fc14audiodecoder.h>
+#include <tfmxaudiodecoder.h>
+
+//#define trace(...) { fprintf(stderr, __VA_ARGS__); }
 
 extern DB_decoder_t fcdec_plugin;
 DB_functions_t *deadbeef;
 
-const char *fcdec_exts[] = { "fc", "fc13", "fc14", "fc3", "fc4", "smod", "hip", "hipc", "hip7", "mcmd", NULL };
+const char *fcdec_exts[] = { "tfmx", "tfm", "tfx", "mdat",
+    "fc", "fc13", "fc14", "fc3", "fc4", "smod",
+    "hip", "hipc", "hip7", "mcmd", NULL };
 
 static const char settings_dlg[] =
     "property \"Sample rate [Hz]\" select[3] fcdec.samplerate 1 48000 44100 22050;\n"
@@ -56,7 +60,7 @@ int fcdec_init (DB_fileinfo_t *_info, DB_playItem_t *it) {
     /* return -1 on failure */
     fcdec_info_t *info = (fcdec_info_t*)_info;
 
-    info->decoder = fc14dec_new();
+    info->decoder = tfmxdec_new();
     if (!info->decoder) {
         return -1;
     }
@@ -67,6 +71,9 @@ int fcdec_init (DB_fileinfo_t *_info, DB_playItem_t *it) {
     if ( !deadbeef->is_local_file(uri) ) {
         return -1;
     }
+    tfmxdec_set_path(info->decoder,uri);
+    //trace ("fcdec init %s\n",uri);
+    
     info->file = deadbeef->fopen(uri);
     free(uri);
     if (!info->file) {
@@ -84,10 +91,10 @@ int fcdec_init (DB_fileinfo_t *_info, DB_playItem_t *it) {
        here properly. */
     int mindur = deadbeef->conf_get_int ("fcdec.minduration", 10);
     if (mindur != 0) {
-        fc14dec_end_shorts(info->decoder,true,mindur);
+        tfmxdec_end_shorts(info->decoder,true,mindur);
     }
     else {
-        fc14dec_end_shorts(info->decoder,false,mindur);
+        tfmxdec_end_shorts(info->decoder,false,mindur);
     }
     
     info->subsong = deadbeef->pl_find_meta_int (it, ":TRACKNUM", 1);
@@ -100,13 +107,14 @@ int fcdec_init (DB_fileinfo_t *_info, DB_playItem_t *it) {
     }
     size_t read = deadbeef->fread(buf,len,1,info->file);
     deadbeef->fclose(info->file);
-    int haveModule = fc14dec_init(info->decoder,buf,len,info->subsong);
+    int haveModule = tfmxdec_init(info->decoder,buf,len,info->subsong);
+    //trace ("fcdec haveModule %i\n",haveModule);
+    free(buf);
     if ( !haveModule ) {
         return -1;
     }
-    free(buf);
 
-    fc14dec_mixer_init(info->decoder,samplerate,bits,channels,0,panning);
+    tfmxdec_mixer_init(info->decoder,samplerate,bits,channels,0,panning);
     
     _info->plugin = &fcdec_plugin;
     _info->fmt.bps = bits;
@@ -121,14 +129,14 @@ int fcdec_init (DB_fileinfo_t *_info, DB_playItem_t *it) {
 void fcdec_free (DB_fileinfo_t *_info) {
     fcdec_info_t *info = (fcdec_info_t *)_info;
 
-    fc14dec_delete(info->decoder);
+    tfmxdec_delete(info->decoder);
 }
 
 int fcdec_read (DB_fileinfo_t *_info, char *bytes, int size) {
     fcdec_info_t *info = (fcdec_info_t *)_info;
 
-    fc14dec_buffer_fill(info->decoder,bytes,size);
-    if (fc14dec_song_end(info->decoder)) {
+    tfmxdec_buffer_fill(info->decoder,bytes,size);
+    if (tfmxdec_song_end(info->decoder)) {
         return 0;
     }
 
@@ -139,7 +147,7 @@ int fcdec_read (DB_fileinfo_t *_info, char *bytes, int size) {
 
 int fcdec_seek (DB_fileinfo_t *_info, float time) {
     fcdec_info_t *info = (fcdec_info_t *)_info;
-    fc14dec_seek(info->decoder,time*1000);  /* seconds */
+    tfmxdec_seek(info->decoder,time*1000);  /* seconds */
     
     _info->readpos = time;
     return 0;
@@ -160,16 +168,17 @@ DB_playItem_t* fcdec_insert (ddb_playlist_t *plt, DB_playItem_t *after, const ch
     deadbeef->fclose(file);
     
     void *decoder = nullptr;
-    decoder = fc14dec_new();
+    decoder = tfmxdec_new();
     if (!decoder) {
         free(buf);
         return after;
     }
-    int haveModule = fc14dec_init(decoder,buf,len,0);
+    tfmxdec_set_path(decoder,fname);
+    int haveModule = tfmxdec_init(decoder,buf,len,0);
     free(buf);
 
     if (haveModule) {
-        int songs = fc14dec_songs(decoder);
+        int songs = tfmxdec_songs(decoder);
         for (int s=0; s<songs; s++) {
             DB_playItem_t *it = deadbeef->pl_item_alloc_init (fname, fcdec_plugin.plugin.id);
             deadbeef->pl_set_meta_int (it, ":TRACKNUM", s);  /* not +1 */
@@ -177,11 +186,11 @@ DB_playItem_t* fcdec_insert (ddb_playlist_t *plt, DB_playItem_t *after, const ch
             snprintf (trk, 10, "%d", s+1);
             deadbeef->pl_add_meta (it, "track", trk);
 
-            int good = fc14dec_reinit(decoder,s);
+            int good = tfmxdec_reinit(decoder,s);
             if (good) {
-                uint32_t dur = fc14dec_duration(decoder)/1000;
+                uint32_t dur = tfmxdec_duration(decoder)/1000;
                 deadbeef->plt_set_item_duration (plt, it, dur);
-                deadbeef->pl_add_meta (it, ":FILETYPE", fc14dec_format_id(decoder));
+                deadbeef->pl_add_meta (it, ":FILETYPE", tfmxdec_format_id(decoder));
                 /* ignore short songs as configured */
                 int mindur = deadbeef->conf_get_int ("fcdec.minduration", 10);
                 if (dur >= mindur) {
@@ -191,7 +200,7 @@ DB_playItem_t* fcdec_insert (ddb_playlist_t *plt, DB_playItem_t *after, const ch
             deadbeef->pl_item_unref (it);
         }
     }
-    fc14dec_delete(decoder);
+    tfmxdec_delete(decoder);
     return after;
 }
 
@@ -215,10 +224,12 @@ DB_decoder_t fcdec_plugin = {
     .plugin.version_minor = 1,
     .plugin.type = DB_PLUGIN_DECODER,
     .plugin.id = "fcdec",
-    .plugin.name = "FC & Hippel player",
-    .plugin.descr = "Future Composer (AMIGA) player\n"
-    "TFMX/Hippel (AMIGA) player\n\n"
+    .plugin.name = "TFMX & FC player",
+    .plugin.descr = "TFMX (AMIGA) player\n"
+    "TFMX/Hippel (AMIGA) player\n"
+    "Future Composer (AMIGA) player\n\n"
     "File name extensions:\n"
+    ".tfmx .tfm .tfx .mdat\n"
     ".fc, .fc13, .fc14, .fc3, .fc4, .smod\n"
     ".hip, .hipc, .hip7, .mcmd\n",
     .plugin.copyright = "Created by Michael Schwendt\n\n"

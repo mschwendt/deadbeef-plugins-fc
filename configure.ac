@@ -1,5 +1,5 @@
 AC_PREREQ([2.72])
-AC_INIT([deadbeef-plugins-fc], [0.1])
+AC_INIT([deadbeef-plugins-fc], [0.2])
 AC_CONFIG_SRCDIR([fcdec.c])
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_HEADERS([config.h])
@@ -27,8 +27,7 @@ AC_CHECK_FUNCS([memset])
 AC_CHECK_FUNCS([strdup])
 AC_FUNC_MALLOC
 
-PKG_CHECK_MODULES([LIBFC14AUDIODECODER], [libfc14audiodecoder >= 2.0.0], [],
-    AC_MSG_ERROR([Could not find libfc14audiodecoder >= 2.0.0 API pkgconfig file.]))
+PKG_CHECK_MODULES([DECODER], [libtfmxaudiodecoder >= 1.0.0], [], [])
 
 AC_CHECK_HEADER(deadbeef/deadbeef.h,
     [],[AC_MSG_ERROR([deadbeef/deadbeef.h not found])])

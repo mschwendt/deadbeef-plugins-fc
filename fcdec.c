@@ -229,7 +229,7 @@ DB_decoder_t fcdec_plugin = {
     "TFMX/Hippel (AMIGA) player\n"
     "Future Composer (AMIGA) player\n\n"
     "File name extensions:\n"
-    ".tfmx .tfm .tfx .mdat\n"
+    ".tfmx, .tfm, .tfx, .mdat\n"
     ".fc, .fc13, .fc14, .fc3, .fc4, .smod\n"
     ".hip, .hipc, .hip7, .mcmd\n",
     .plugin.copyright = "Created by Michael Schwendt\n\n"

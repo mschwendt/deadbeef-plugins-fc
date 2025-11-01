@@ -5,9 +5,10 @@ computing: https://github.com/mschwendt/deadbeef-plugins-fc
 File content detection for files typically ending with these
 file name extensions:
 
-        .tfmx, .tfx, .tfm, .mdat
-	    .fc, .fc13, .fc14, .fc3, .fc4, .smod
-	    .hip, .hipc, .hip7
-	    .mcmd
+    .tfmx, .tfx, .tfm, .mdat
+
+    .fc, .fc13, .fc14, .fc3, .fc4, .smod
+
+    .hip, .hipc, .hip7, .mcmd
 
 This plugin strictly requires ``libtfmxaudiodecoder``.

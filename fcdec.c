@@ -38,6 +38,7 @@ static const char settings_dlg[] =
     "property \"Sample rate [Hz]\" select[3] fcdec.samplerate 1 48000 44100 22050;\n"
     "property \"Panning\" spinbtn[0,100,1] fcdec.panning 75;\n"
     "property \"Min.duration [sec]\" entry fcdec.minduration 10;\n"
+    "property \"End shorties immediately\" checkbox fcdec.endshorts 1;\n"
 ;
 
 typedef struct {
@@ -90,12 +91,8 @@ int fcdec_init (DB_fileinfo_t *_info, DB_playItem_t *it) {
        the preferences can be changed, so we toggle "End Shorts" mode
        here properly. */
     int mindur = deadbeef->conf_get_int ("fcdec.minduration", 10);
-    if (mindur != 0) {
-        tfmxdec_end_shorts(info->decoder,true,mindur);
-    }
-    else {
-        tfmxdec_end_shorts(info->decoder,false,mindur);
-    }
+    int endshorts = deadbeef->conf_get_int ("fcdec.endshorts", 1);
+    tfmxdec_end_shorts(info->decoder,endshorts,mindur);
     
     info->subsong = deadbeef->pl_find_meta_int (it, ":TRACKNUM", 1);
     info->duration = deadbeef->pl_get_item_duration (it);
@@ -193,7 +190,7 @@ DB_playItem_t* fcdec_insert (ddb_playlist_t *plt, DB_playItem_t *after, const ch
                 deadbeef->pl_add_meta (it, ":FILETYPE", tfmxdec_format_id(decoder));
                 /* ignore short songs as configured */
                 int mindur = deadbeef->conf_get_int ("fcdec.minduration", 10);
-                if (dur >= mindur) {
+                if ( (dur >= mindur) || songs==1 ) {
                     after = deadbeef->plt_insert_item (plt, after, it);
                 }
             }

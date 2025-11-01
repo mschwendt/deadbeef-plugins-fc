@@ -177,26 +177,43 @@ DB_playItem_t* fcdec_insert (ddb_playlist_t *plt, DB_playItem_t *after, const ch
     if (haveModule) {
         int songs = tfmxdec_songs(decoder);
         for (int s=0; s<songs; s++) {
+            int good = tfmxdec_reinit(decoder,s);
+            if (!good) {
+                continue;
+            }
+            uint32_t dur = tfmxdec_duration(decoder)/1000;
+            int mindur = deadbeef->conf_get_int ("fcdec.minduration", 10);
+
             DB_playItem_t *it = deadbeef->pl_item_alloc_init (fname, fcdec_plugin.plugin.id);
             deadbeef->pl_set_meta_int (it, ":TRACKNUM", s);  /* not +1 */
+
+            deadbeef->plt_set_item_duration (plt, it, dur);
+            deadbeef->pl_add_meta (it, ":FILETYPE", tfmxdec_format_id(decoder));
+
             char trk[10];
             snprintf (trk, 10, "%d", s+1);
             deadbeef->pl_add_meta (it, "track", trk);
 
-            int good = tfmxdec_reinit(decoder,s);
-            if (good) {
-                uint32_t dur = tfmxdec_duration(decoder)/1000;
-                deadbeef->plt_set_item_duration (plt, it, dur);
-                deadbeef->pl_add_meta (it, ":FILETYPE", tfmxdec_format_id(decoder));
-                /* ignore short songs as configured */
-                int mindur = deadbeef->conf_get_int ("fcdec.minduration", 10);
-                if ( (dur >= mindur) || songs==1 ) {
-                    after = deadbeef->plt_insert_item (plt, after, it);
-                }
+            const char *s = tfmxdec_get_artist(decoder);
+            if ( s!=0 && strlen(s)>0 ) {
+                deadbeef->pl_add_meta(it, "artist", s);
+            }
+            s = tfmxdec_get_title(decoder);
+            if ( s!=0 && strlen(s)>0 ) {
+                deadbeef->pl_add_meta(it, "title", s);
+            }
+            s = tfmxdec_get_game(decoder);
+            if ( s!=0 && strlen(s)>0 ) {
+                deadbeef->pl_add_meta(it, "album", s);
+            }
+
+            /* ignore short songs as configured */
+            if ( (dur >= mindur) || songs==1 ) {
+                after = deadbeef->plt_insert_item (plt, after, it);
             }
             deadbeef->pl_item_unref (it);
-        }
-    }
+        }  /* for each song */
+    }  /* haveModule */
     tfmxdec_delete(decoder);
     return after;
 }

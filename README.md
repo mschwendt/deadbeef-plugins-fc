@@ -1,4 +1,5 @@
-DeaDBeeF input plugin to handle TFMX and Hippel TFMX related music
+[DeaDBeeF](https://github.com/DeaDBeeF-Player/deadbeef) input plugin
+to handle TFMX and Hippel TFMX related music
 file formats like Future Composer from the Commodore Amiga era of
 computing: https://github.com/mschwendt/deadbeef-plugins-fc
 

@@ -39,6 +39,7 @@ static const char settings_dlg[] =
     "property \"Panning\" spinbtn[0,100,1] fcdec.panning 75;\n"
     "property \"Min.duration [sec]\" entry fcdec.minduration 10;\n"
     "property \"End shorties immediately\" checkbox fcdec.endshorts 1;\n"
+    "property \"Amiga 500 low-pass filter\" checkbox fcdec.filtering 0;\n"
 ;
 
 typedef struct {
@@ -111,6 +112,7 @@ int fcdec_init (DB_fileinfo_t *_info, DB_playItem_t *it) {
         return -1;
     }
 
+    tfmxdec_set_filtering( info->decoder, deadbeef->conf_get_int ("fcdec.filtering", 0) );
     tfmxdec_mixer_init(info->decoder,samplerate,bits,channels,0,panning);
     
     _info->plugin = &fcdec_plugin;

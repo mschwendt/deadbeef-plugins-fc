@@ -237,7 +237,7 @@ DB_plugin_t* fcdec_load (DB_functions_t *api) {
 DB_decoder_t fcdec_plugin = {
     DDB_PLUGIN_SET_API_VERSION
     .plugin.version_major = 0,
-    .plugin.version_minor = 1,
+    .plugin.version_minor = 3,
     .plugin.type = DB_PLUGIN_DECODER,
     .plugin.id = "fcdec",
     .plugin.name = "TFMX & FC player",

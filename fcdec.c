@@ -192,8 +192,8 @@ DB_playItem_t* fcdec_insert (ddb_playlist_t *plt, DB_playItem_t *after, const ch
             deadbeef->plt_set_item_duration (plt, it, dur);
             deadbeef->pl_add_meta (it, ":FILETYPE", tfmxdec_format_id(decoder));
 
-            char trk[10];
-            snprintf (trk, 10, "%d", s+1);
+            char trk[10];  /* enough space for more digits than needed */
+            snprintf (trk, 10, "%d", (s+1)&0x1ff);
             deadbeef->pl_add_meta (it, "track", trk);
 
             const char *s = tfmxdec_get_artist(decoder);

@@ -32,7 +32,11 @@ DB_functions_t *deadbeef;
 
 const char *fcdec_exts[] = { "tfmx", "tfm", "tfx", "mdat",
     "fc", "fc13", "fc14", "fc3", "fc4", "smod",
-    "hip", "hipc", "hip7", "mcmd", NULL };
+    "hip", "hipc", "hip7", "mcmd",
+#if TFMXAUDIODECODER_VERSION > 10009
+    "dns",
+#endif
+    NULL };
 
 static const char settings_dlg[] =
     "property \"Sample rate [Hz]\" select[3] fcdec.samplerate 1 48000 44100 22050;\n"
@@ -237,17 +241,25 @@ DB_plugin_t* fcdec_load (DB_functions_t *api) {
 DB_decoder_t fcdec_plugin = {
     DDB_PLUGIN_SET_API_VERSION
     .plugin.version_major = 0,
-    .plugin.version_minor = 3,
+    .plugin.version_minor = 4,
     .plugin.type = DB_PLUGIN_DECODER,
     .plugin.id = "fcdec",
     .plugin.name = "TFMX & FC player",
     .plugin.descr = "TFMX (AMIGA) player\n"
     "TFMX/Hippel (AMIGA) player\n"
-    "Future Composer (AMIGA) player\n\n"
+    "Future Composer (AMIGA) player\n"
+#if TFMXAUDIODECODER_VERSION > 10009
+    "Dynamic Synthesizer (AMIGA) player\n"
+#endif
+    "\n"
     "File name extensions:\n"
     ".tfmx, .tfm, .tfx, .mdat\n"
     ".fc, .fc13, .fc14, .fc3, .fc4, .smod\n"
-    ".hip, .hipc, .hip7, .mcmd\n",
+    ".hip, .hipc, .hip7, .mcmd\n"
+#if TFMXAUDIODECODER_VERSION > 10009
+    ".dns\n"
+#endif
+    ,
     .plugin.copyright = "Created by Michael Schwendt\n\n"
     "License: GPLv2 or later\n",
     .plugin.website = "https://github.com/mschwendt/deadbeef-plugins-fc",
